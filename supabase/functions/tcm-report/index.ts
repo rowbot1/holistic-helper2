@@ -35,11 +35,15 @@ async function queryRelevantTCMKnowledge(patientData: any) {
     return result.data.Get.TCMApp;
   } catch (error) {
     console.error('Error querying Weaviate:', error);
-    throw error;
+    throw new Error(`Failed to query TCM knowledge: ${error.message}`);
   }
 }
 
 async function generateReportWithDeepseek(patientData: any, tcmKnowledge: any[]) {
+  if (!DEEPSEEK_API_KEY) {
+    throw new Error('DeepSeek API key is not configured');
+  }
+
   console.log('Generating report with DeepSeek for patient:', patientData.name);
   const contextText = tcmKnowledge
     .map(doc => `${doc.title ? `${doc.title}:\n` : ''}${doc.text}`)
@@ -87,8 +91,9 @@ Format the response in a clear, professional manner suitable for medical documen
     });
 
     if (!response.ok) {
-      console.error('DeepSeek API error:', await response.text());
-      throw new Error(`DeepSeek API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('DeepSeek API error:', errorText);
+      throw new Error(`DeepSeek API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -96,7 +101,7 @@ Format the response in a clear, professional manner suitable for medical documen
     return data.choices[0].message.content;
   } catch (error) {
     console.error('Error calling DeepSeek API:', error);
-    throw error;
+    throw new Error(`Failed to generate report: ${error.message}`);
   }
 }
 
@@ -107,6 +112,14 @@ serve(async (req) => {
   }
 
   try {
+    // Validate required API keys
+    if (!WEAVIATE_API_KEY) {
+      throw new Error('Weaviate API key is not configured');
+    }
+    if (!DEEPSEEK_API_KEY) {
+      throw new Error('DeepSeek API key is not configured');
+    }
+
     const { patientId } = await req.json();
     console.log('Processing request for patient:', patientId);
 
@@ -126,7 +139,7 @@ serve(async (req) => {
     });
 
     if (!patientResponse.ok) {
-      throw new Error('Failed to fetch patient data');
+      throw new Error(`Failed to fetch patient data: ${patientResponse.status}`);
     }
 
     const [patientData] = await patientResponse.json();
@@ -150,7 +163,7 @@ serve(async (req) => {
       },
     );
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in tcm-report function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
