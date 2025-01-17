@@ -1,1 +1,2 @@
-project_id = "ibidshfenfnlkizfgcvw"
+[functions.tcm-vector]
+verify_jwt = false
