@@ -2,17 +2,18 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import weaviate, { ApiKey } from 'npm:weaviate-ts-client';
 
-const WEAVIATE_URL = Deno.env.get('WEAVIATE_URL');
+const WEAVIATE_URL = Deno.env.get('WEAVIATE_URL') || "2thnljoisdy8xfn23vue1a.c0.europe-west3.gcp.weaviate.cloud";
 const WEAVIATE_API_KEY = Deno.env.get('WEAVIATE_API_KEY');
 const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
 
-if (!WEAVIATE_URL || !WEAVIATE_API_KEY || !DEEPSEEK_API_KEY) {
+if (!WEAVIATE_API_KEY || !DEEPSEEK_API_KEY) {
   throw new Error('Missing required environment variables');
 }
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 const client = weaviate.client({
@@ -22,7 +23,7 @@ const client = weaviate.client({
 });
 
 async function queryRelevantTCMKnowledge(patientData: any) {
-  // Create a search query based on patient symptoms and conditions
+  console.log('Querying TCM knowledge for patient data:', patientData);
   const searchQuery = `${patientData.chief_complaint} ${patientData.tongue_color || ''}`.trim();
   
   try {
@@ -31,9 +32,10 @@ async function queryRelevantTCMKnowledge(patientData: any) {
       .withClassName('TCMApp')
       .withFields(['text', 'title', '_additional { certainty }'])
       .withNearText({ concepts: [searchQuery] })
-      .withLimit(3) // Limit to top 3 most relevant documents
+      .withLimit(3)
       .do();
 
+    console.log('Weaviate query result:', result);
     return result.data.Get.TCMApp;
   } catch (error) {
     console.error('Error querying Weaviate:', error);
@@ -42,6 +44,7 @@ async function queryRelevantTCMKnowledge(patientData: any) {
 }
 
 async function generateReportWithDeepseek(patientData: any, tcmKnowledge: any[]) {
+  console.log('Generating report with DeepSeek for patient:', patientData.name);
   const contextText = tcmKnowledge
     .map(doc => `${doc.title ? `${doc.title}:\n` : ''}${doc.text}`)
     .join('\n\n');
@@ -85,10 +88,12 @@ Format the response in a clear, professional manner suitable for medical documen
     });
 
     if (!response.ok) {
+      console.error('DeepSeek API error:', await response.text());
       throw new Error(`DeepSeek API error: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log('DeepSeek response received');
     return data.choices[0].message.content;
   } catch (error) {
     console.error('Error calling DeepSeek API:', error);
@@ -104,10 +109,15 @@ serve(async (req) => {
 
   try {
     const { patientId } = await req.json();
+    console.log('Processing request for patient:', patientId);
 
     // Fetch patient data from Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing Supabase configuration');
+    }
 
     const patientResponse = await fetch(`${supabaseUrl}/rest/v1/patients?id=eq.${patientId}`, {
       headers: {
@@ -126,16 +136,19 @@ serve(async (req) => {
     }
 
     // Query relevant TCM knowledge
-    console.log('Querying TCM knowledge for patient:', patientId);
     const tcmKnowledge = await queryRelevantTCMKnowledge(patientData);
 
     // Generate report using DeepSeek
-    console.log('Generating report with DeepSeek');
     const report = await generateReportWithDeepseek(patientData, tcmKnowledge);
 
     return new Response(
-      JSON.stringify({ report }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify(report),
+      { 
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders,
+        },
+      },
     );
 
   } catch (error) {
@@ -144,8 +157,11 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders,
+        },
+      },
     );
   }
 });
