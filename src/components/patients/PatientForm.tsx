@@ -59,28 +59,30 @@ export function PatientForm({ isOpen, onOpenChange, onSubmit, editingPatient, is
 
   const form = useForm<PatientFormData>({
     defaultValues: {
-      name: editingPatient?.name || '',
-      gender: editingPatient?.gender || '',
-      dob: editingPatient?.dob || '',
-      chief_complaint: editingPatient?.chief_complaint || '',
-      complaint_duration: editingPatient?.complaint_duration || '',
-      tcm_inspection: editingPatient?.tcm_inspection || null,
-      tcm_auscultation: editingPatient?.tcm_auscultation || null,
-      tcm_inquiry: editingPatient?.tcm_inquiry || null,
-      tcm_palpation: editingPatient?.tcm_palpation || null,
-      emotional_state: editingPatient?.emotional_state || '',
-      lifestyle_factors: editingPatient?.lifestyle_factors || '',
-      medical_history: editingPatient?.medical_history || '',
+      name: '',
+      gender: '',
+      dob: '',
+      chief_complaint: '',
+      complaint_duration: '',
+      tcm_inspection: null,
+      tcm_auscultation: null,
+      tcm_inquiry: null,
+      tcm_palpation: null,
+      emotional_state: '',
+      lifestyle_factors: '',
+      medical_history: '',
     },
   });
 
+  // Update form values when editingPatient changes
   useEffect(() => {
     if (editingPatient) {
+      console.log('Editing patient data:', editingPatient);
       form.reset({
-        name: editingPatient.name,
-        gender: editingPatient.gender,
-        dob: editingPatient.dob,
-        chief_complaint: editingPatient.chief_complaint,
+        name: editingPatient.name || '',
+        gender: editingPatient.gender || '',
+        dob: editingPatient.dob || '',
+        chief_complaint: editingPatient.chief_complaint || '',
         complaint_duration: editingPatient.complaint_duration || '',
         tcm_inspection: editingPatient.tcm_inspection || null,
         tcm_auscultation: editingPatient.tcm_auscultation || null,
@@ -89,6 +91,25 @@ export function PatientForm({ isOpen, onOpenChange, onSubmit, editingPatient, is
         emotional_state: editingPatient.emotional_state || '',
         lifestyle_factors: editingPatient.lifestyle_factors || '',
         medical_history: editingPatient.medical_history || '',
+      });
+
+      if (editingPatient.dob) {
+        calculateAge(editingPatient.dob);
+      }
+    } else {
+      form.reset({
+        name: '',
+        gender: '',
+        dob: '',
+        chief_complaint: '',
+        complaint_duration: '',
+        tcm_inspection: null,
+        tcm_auscultation: null,
+        tcm_inquiry: null,
+        tcm_palpation: null,
+        emotional_state: '',
+        lifestyle_factors: '',
+        medical_history: '',
       });
     }
   }, [editingPatient, form]);
@@ -104,6 +125,7 @@ export function PatientForm({ isOpen, onOpenChange, onSubmit, editingPatient, is
   };
 
   const handleSubmit = (data: PatientFormData) => {
+    console.log('Submitting form data:', data);
     onSubmit({
       name: data.name,
       dob: data.dob,
