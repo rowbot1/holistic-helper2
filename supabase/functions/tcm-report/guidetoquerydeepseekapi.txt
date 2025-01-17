@@ -1,0 +1,33 @@
+Making API Calls
+The DeepSeek V3 API is compatible with the OpenAI API format1. Here's how to make a basic API call:
+Python Example
+
+python
+from openai import OpenAI
+
+client = OpenAI(api_key="<DeepSeek API Key>", base_url="https://api.deepseek.com")
+
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant"},
+        {"role": "user", "content": "Hello"},
+    ],
+    stream=False
+)
+
+print(response.choices[0].message.content)
+cURL Example
+
+bash
+curl https://api.deepseek.com/chat/completions \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer <DeepSeek API Key>" \
+-d '{
+  "model": "deepseek-chat",
+  "messages": [
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": "Hello!"}
+  ],
+  "stream": false
+}'

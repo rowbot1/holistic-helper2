@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.ns", "dom"],
+    "types": ["deno.ns"],
+    "target": "esnext",
+    "allowImportingTsExtensions": true,
+    "module": "esnext",
+    "strict": true
+  },
+  "include": ["./index.ts"]
+}

@@ -1,69 +1,76 @@
-# Welcome to your Lovable project
+# Holistic Helper
 
-## Project info
+Holistic Helper is an AI-powered platform that combines Traditional Chinese Medicine (TCM) with modern technology to empower practitioners and enhance patient care.
 
-**URL**: https://lovable.dev/projects/f3b31bc1-e9c2-42b0-a982-5a4c05e0d24c
+## Features
 
-## How can I edit this code?
+- **Streamlined Patient Management**: Organize, store, and access patient information effortlessly
+- **AI-Driven Diagnostic Insights**: Generate comprehensive TCM diagnostic reports using advanced AI algorithms
+- **Customized Treatment Planning**: Receive tailored recommendations for acupuncture points, herbal formulas, and lifestyle adjustments
+- **Seamless Data Integration**: Integrates with Weaviate for knowledge retrieval and cloud storage solutions
 
-There are several ways of editing your application.
+## Technologies Used
 
-**Use Lovable**
+- Next.js (React framework)
+- TypeScript
+- Supabase (Backend-as-a-Service)
+- Weaviate (AI-powered knowledge graph)
+- Tailwind CSS (Styling)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f3b31bc1-e9c2-42b0-a982-5a4c05e0d24c) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js (v18 or higher)
+- npm (v9 or higher)
+- Supabase CLI
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Clone the repository:
+```bash
+git clone https://github.com/rowbot1/holistic-helper2.git
+cd holistic-helper2
+```
 
-Follow these steps:
+2. Install dependencies:
+```bash
+npm install
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3. Set up environment variables:
+```bash
+cp .env.local.example .env.local
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+holistic-helper/
+├── src/
+│   ├── components/       # Reusable UI components
+│   ├── pages/            # Application pages
+│   ├── styles/           # Global styles
+│   └── utils/            # Utility functions
+├── supabase/
+│   ├── functions/        # Edge functions
+│   └── migrations/       # Database migrations
+└── public/               # Static assets
+```
 
-**Use GitHub Codespaces**
+## Contributing
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-## What technologies are used for this project?
+## License
 
-This project is built with .
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Contact
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/f3b31bc1-e9c2-42b0-a982-5a4c05e0d24c) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+For support or inquiries, please contact support@acuassist.com
