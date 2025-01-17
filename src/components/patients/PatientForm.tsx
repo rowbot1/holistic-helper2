@@ -1,6 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -9,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { Patient, NewPatient } from '@/types/patient';
+import { differenceInYears, parse, format } from 'date-fns';
 
 interface PatientFormProps {
   isOpen: boolean;
@@ -18,18 +36,58 @@ interface PatientFormProps {
   isLoading: boolean;
 }
 
+interface PatientFormData {
+  name: string;
+  gender: string;
+  dob: string;
+  chief_complaint: string;
+  complaint_duration: string;
+}
+
 export function PatientForm({ isOpen, onOpenChange, onSubmit, editingPatient, isLoading }: PatientFormProps) {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const patientData = {
-      name: formData.get('name') as string,
-      dob: formData.get('dob') as string,
-      gender: formData.get('gender') as string,
-      chief_complaint: formData.get('chief_complaint') as string,
-      tongue_color: formData.get('tongue_color') as string,
-    };
-    onSubmit(patientData);
+  const [age, setAge] = useState<number | null>(null);
+
+  const form = useForm<PatientFormData>({
+    defaultValues: {
+      name: editingPatient?.name || '',
+      gender: editingPatient?.gender || '',
+      dob: editingPatient?.dob || '',
+      chief_complaint: editingPatient?.chief_complaint || '',
+      complaint_duration: '',
+    },
+  });
+
+  useEffect(() => {
+    if (editingPatient) {
+      form.reset({
+        name: editingPatient.name,
+        gender: editingPatient.gender,
+        dob: editingPatient.dob,
+        chief_complaint: editingPatient.chief_complaint,
+        complaint_duration: '',
+      });
+    }
+  }, [editingPatient, form]);
+
+  // Calculate age whenever date of birth changes
+  const calculateAge = (dobString: string) => {
+    try {
+      const dob = parse(dobString, 'yyyy-MM-dd', new Date());
+      const calculatedAge = differenceInYears(new Date(), dob);
+      setAge(calculatedAge);
+    } catch (error) {
+      setAge(null);
+    }
+  };
+
+  const handleSubmit = (data: PatientFormData) => {
+    onSubmit({
+      name: data.name,
+      dob: data.dob,
+      gender: data.gender,
+      chief_complaint: data.chief_complaint,
+      complaint_duration: data.complaint_duration,
+    });
   };
 
   return (
@@ -40,42 +98,126 @@ export function PatientForm({ isOpen, onOpenChange, onSubmit, editingPatient, is
             {editingPatient ? 'Edit Patient' : 'Add New Patient'}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            name="name"
-            placeholder="Name"
-            defaultValue={editingPatient?.name}
-            required
-          />
-          <Input
-            name="dob"
-            type="date"
-            placeholder="Date of Birth"
-            defaultValue={editingPatient?.dob}
-            required
-          />
-          <Input
-            name="gender"
-            placeholder="Gender"
-            defaultValue={editingPatient?.gender}
-            required
-          />
-          <Input
-            name="chief_complaint"
-            placeholder="Chief Complaint"
-            defaultValue={editingPatient?.chief_complaint}
-            required
-          />
-          <Input
-            name="tongue_color"
-            placeholder="Tongue Color"
-            defaultValue={editingPatient?.tongue_color}
-          />
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {editingPatient ? 'Update' : 'Create'}
-          </Button>
-        </form>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              rules={{ required: 'Name is required' }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Patient name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="gender"
+              rules={{ required: 'Gender is required' }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gender</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dob"
+              rules={{ 
+                required: 'Date of birth is required',
+                pattern: {
+                  value: /^\d{4}-\d{2}-\d{2}$/,
+                  message: 'Please use YYYY-MM-DD format'
+                }
+              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date of Birth</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="date" 
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        calculateAge(e.target.value);
+                      }}
+                    />
+                  </FormControl>
+                  {age !== null && (
+                    <div className="text-sm text-muted-foreground">
+                      Age: {age} years
+                    </div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="chief_complaint"
+              rules={{ required: 'Chief complaint is required' }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Chief Complaint</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Describe the main health issue"
+                      className="min-h-[100px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="complaint_duration"
+              rules={{ required: 'Complaint duration is required' }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Duration of Complaint</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="e.g., 2 weeks, 3 months"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {editingPatient ? 'Update' : 'Create'}
+            </Button>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
