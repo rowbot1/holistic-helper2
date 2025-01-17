@@ -42,6 +42,22 @@ interface PatientFormData {
   medical_history: string;
 }
 
+const calculateAge = (birthDate: string): number | null => {
+  if (!birthDate) return null;
+  
+  const today = new Date();
+  const birth = new Date(birthDate);
+  
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  
+  return age;
+};
+
 export function PatientForm({ 
   isOpen, 
   onOpenChange, 
@@ -88,6 +104,7 @@ export function PatientForm({
         lifestyle_factors: editingPatient.lifestyle_factors || '',
         medical_history: editingPatient.medical_history || '',
       });
+      setAge(calculateAge(editingPatient.dob));
     }
   }, [editingPatient, form]);
 
@@ -160,7 +177,7 @@ export function PatientForm({
                 <BasicInformationForm 
                   form={form} 
                   age={age} 
-                  onDateChange={calculateAge}
+                  onDateChange={(date) => setAge(calculateAge(date))}
                 />
               </TabsContent>
 
