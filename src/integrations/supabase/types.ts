@@ -12,6 +12,7 @@ export type Database = {
       patients: {
         Row: {
           chief_complaint: string
+          complaint_duration: string | null
           created_at: string
           dob: string
           gender: string
@@ -21,6 +22,7 @@ export type Database = {
         }
         Insert: {
           chief_complaint: string
+          complaint_duration?: string | null
           created_at?: string
           dob: string
           gender: string
@@ -30,6 +32,7 @@ export type Database = {
         }
         Update: {
           chief_complaint?: string
+          complaint_duration?: string | null
           created_at?: string
           dob?: string
           gender?: string
