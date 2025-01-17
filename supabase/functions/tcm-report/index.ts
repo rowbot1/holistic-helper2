@@ -18,21 +18,58 @@ const client = weaviate.client({
   apiKey: new ApiKey(WEAVIATE_API_KEY),
 });
 
+async function createTCMClassIfNotExists() {
+  try {
+    // Check if class exists
+    const schema = await client.schema.getter().do();
+    const tcmClass = schema.classes?.find(c => c.class === 'TCMKnowledge');
+    
+    if (!tcmClass) {
+      console.log('Creating TCMKnowledge class in Weaviate...');
+      await client.schema
+        .classCreator()
+        .withClass({
+          class: 'TCMKnowledge',
+          description: 'Traditional Chinese Medicine knowledge base',
+          properties: [
+            {
+              name: 'text',
+              dataType: ['text'],
+              description: 'The content of the TCM knowledge',
+            },
+            {
+              name: 'title',
+              dataType: ['text'],
+              description: 'The title or category of the TCM knowledge',
+            }
+          ],
+        })
+        .do();
+      console.log('TCMKnowledge class created successfully');
+    }
+  } catch (error) {
+    console.error('Error managing Weaviate schema:', error);
+    throw new Error(`Failed to setup Weaviate schema: ${error.message}`);
+  }
+}
+
 async function queryRelevantTCMKnowledge(patientData: any) {
   console.log('Querying TCM knowledge for patient data:', patientData);
   const searchQuery = `${patientData.chief_complaint} ${patientData.tcm_inspection?.tongue_color || ''}`.trim();
   
   try {
+    await createTCMClassIfNotExists();
+    
     const result = await client.graphql
       .get()
-      .withClassName('TCMApp')
+      .withClassName('TCMKnowledge')
       .withFields(['text', 'title', '_additional { certainty }'])
       .withNearText({ concepts: [searchQuery] })
       .withLimit(3)
       .do();
 
     console.log('Weaviate query result:', result);
-    return result.data.Get.TCMApp;
+    return result.data.Get.TCMKnowledge;
   } catch (error) {
     console.error('Error querying Weaviate:', error);
     throw new Error(`Failed to query TCM knowledge: ${error.message}`);
@@ -45,9 +82,11 @@ async function generateReportWithDeepseek(patientData: any, tcmKnowledge: any[])
   }
 
   console.log('Generating report with DeepSeek for patient:', patientData.name);
-  const contextText = tcmKnowledge
-    .map(doc => `${doc.title ? `${doc.title}:\n` : ''}${doc.text}`)
-    .join('\n\n');
+  const contextText = tcmKnowledge && tcmKnowledge.length > 0
+    ? tcmKnowledge
+        .map(doc => `${doc.title ? `${doc.title}:\n` : ''}${doc.text}`)
+        .join('\n\n')
+    : 'No specific TCM knowledge found for this case.';
 
   const prompt = `As a TCM practitioner, generate a comprehensive diagnostic report based on the following patient data and relevant TCM knowledge.
 
