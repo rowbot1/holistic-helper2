@@ -2,6 +2,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -20,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Pencil, Trash2, FileText, Search } from 'lucide-react';
+import { Loader2, Pencil, Trash2, FileText, Search, UserPlus } from 'lucide-react';
 import { Patient } from '@/types/patient';
 
 interface PatientTableProps {
@@ -40,6 +47,7 @@ export function PatientTable({
 }: PatientTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedPatient, setSelectedPatient] = useState<string>('');
   const itemsPerPage = 5;
 
   // Filter patients based on search query
@@ -53,9 +61,51 @@ export function PatientTable({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedPatients = filteredPatients.slice(startIndex, startIndex + itemsPerPage);
 
+  const handlePatientSelect = (patientId: string) => {
+    const patient = patients.find(p => p.id === patientId);
+    if (patient) {
+      setSelectedPatient(patientId);
+      onEdit(patient);
+    }
+  };
+
+  const handleNewPatient = () => {
+    setSelectedPatient('');
+    onEdit({
+      id: '',
+      name: '',
+      dob: '',
+      gender: '',
+      chief_complaint: '',
+      created_at: '',
+    });
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+        <div className="w-full md:w-1/3">
+          <Select value={selectedPatient} onValueChange={handlePatientSelect}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a patient" />
+            </SelectTrigger>
+            <SelectContent>
+              {patients.map((patient) => (
+                <SelectItem key={patient.id} value={patient.id}>
+                  {patient.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleNewPatient}
+          className="w-full md:w-auto"
+        >
+          <UserPlus className="mr-2 h-4 w-4" />
+          New Patient
+        </Button>
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
