@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
@@ -9,9 +9,11 @@ import { InquiryForm } from "./diagnostic-methods/InquiryForm";
 import { PalpationForm } from "./diagnostic-methods/PalpationForm";
 import { TCMDiagnosticFormData } from "./types/tcm";
 
-export function TCMDiagnosticForm() {
-  const form = useForm<TCMDiagnosticFormData>();
+interface TCMDiagnosticFormProps {
+  form: UseFormReturn<any>;
+}
 
+export function TCMDiagnosticForm({ form }: TCMDiagnosticFormProps) {
   return (
     <Card className="p-6">
       <Form {...form}>
