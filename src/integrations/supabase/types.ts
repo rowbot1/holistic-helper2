@@ -18,6 +18,10 @@ export type Database = {
           gender: string
           id: string
           name: string
+          tcm_auscultation: Json | null
+          tcm_inquiry: Json | null
+          tcm_inspection: Json | null
+          tcm_palpation: Json | null
           tongue_color: string | null
         }
         Insert: {
@@ -28,6 +32,10 @@ export type Database = {
           gender: string
           id?: string
           name: string
+          tcm_auscultation?: Json | null
+          tcm_inquiry?: Json | null
+          tcm_inspection?: Json | null
+          tcm_palpation?: Json | null
           tongue_color?: string | null
         }
         Update: {
@@ -38,6 +46,10 @@ export type Database = {
           gender?: string
           id?: string
           name?: string
+          tcm_auscultation?: Json | null
+          tcm_inquiry?: Json | null
+          tcm_inspection?: Json | null
+          tcm_palpation?: Json | null
           tongue_color?: string | null
         }
         Relationships: []

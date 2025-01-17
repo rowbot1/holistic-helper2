@@ -17,7 +17,7 @@ export const patientsService = {
       .from('patients')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data as Patient;
@@ -28,7 +28,7 @@ export const patientsService = {
       .from('patients')
       .insert([patient])
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data as Patient;
@@ -40,7 +40,7 @@ export const patientsService = {
       .update(patient)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data as Patient;
