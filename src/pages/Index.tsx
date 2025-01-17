@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Hero from "@/components/Hero";
 import Features from "@/components/Features";
+import TCMKnowledgeBase from "@/components/TCMKnowledgeBase";
 
 const Index = () => {
   return (
@@ -15,6 +16,7 @@ const Index = () => {
         </Link>
       </div>
       <Features />
+      <TCMKnowledgeBase />
     </div>
   );
 };
