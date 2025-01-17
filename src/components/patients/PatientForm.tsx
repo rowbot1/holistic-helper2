@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
 import {
   Form,
 } from '@/components/ui/form';
@@ -10,13 +9,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Loader2 } from 'lucide-react';
 import { Patient, NewPatient } from '@/types/patient';
-import { differenceInYears, parse } from 'date-fns';
 import { TCMDiagnosticForm } from './TCMDiagnosticForm';
 import { AdditionalTCMInfo } from './AdditionalTCMInfo';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BasicInformationForm } from './form-sections/BasicInformationForm';
+import { FormActionButtons } from './FormActionButtons';
+import { useToast } from "@/hooks/use-toast";
+import { tcmService } from '@/services/tcm';
 
 interface PatientFormProps {
   isOpen: boolean;
@@ -24,6 +24,7 @@ interface PatientFormProps {
   onSubmit: (data: NewPatient) => void;
   editingPatient: Patient | null;
   isLoading: boolean;
+  onDelete?: (id: string) => void;
 }
 
 interface PatientFormData {
@@ -41,8 +42,17 @@ interface PatientFormData {
   medical_history: string;
 }
 
-export function PatientForm({ isOpen, onOpenChange, onSubmit, editingPatient, isLoading }: PatientFormProps) {
+export function PatientForm({ 
+  isOpen, 
+  onOpenChange, 
+  onSubmit, 
+  editingPatient, 
+  isLoading,
+  onDelete 
+}: PatientFormProps) {
   const [age, setAge] = useState<number | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<PatientFormData>({
     defaultValues: {
@@ -78,20 +88,28 @@ export function PatientForm({ isOpen, onOpenChange, onSubmit, editingPatient, is
         lifestyle_factors: editingPatient.lifestyle_factors || '',
         medical_history: editingPatient.medical_history || '',
       });
-
-      if (editingPatient.dob) {
-        calculateAge(editingPatient.dob);
-      }
     }
   }, [editingPatient, form]);
 
-  const calculateAge = (dobString: string) => {
+  const handleGenerateReport = async () => {
+    if (!editingPatient?.id) return;
+    
     try {
-      const dob = parse(dobString, 'yyyy-MM-dd', new Date());
-      const calculatedAge = differenceInYears(new Date(), dob);
-      setAge(calculatedAge);
+      setIsGeneratingReport(true);
+      const report = await tcmService.generateReport(editingPatient.id);
+      toast({
+        title: "TCM Report Generated",
+        description: report,
+        duration: 10000,
+      });
     } catch (error) {
-      setAge(null);
+      toast({
+        title: "Error generating report",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingReport(false);
     }
   };
 
@@ -110,6 +128,14 @@ export function PatientForm({ isOpen, onOpenChange, onSubmit, editingPatient, is
       emotional_state: data.emotional_state,
       lifestyle_factors: data.lifestyle_factors,
       medical_history: data.medical_history,
+    });
+  };
+
+  const handleReset = () => {
+    form.reset();
+    toast({
+      title: "Form Reset",
+      description: "All form fields have been cleared.",
     });
   };
 
@@ -147,10 +173,16 @@ export function PatientForm({ isOpen, onOpenChange, onSubmit, editingPatient, is
               </TabsContent>
             </Tabs>
 
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {editingPatient ? 'Update' : 'Create'}
-            </Button>
+            <FormActionButtons
+              isEditing={!!editingPatient}
+              isSubmitting={isLoading}
+              isGeneratingReport={isGeneratingReport}
+              onSubmit={form.handleSubmit(handleSubmit)}
+              onDelete={onDelete}
+              onGenerateReport={handleGenerateReport}
+              onReset={handleReset}
+              patientId={editingPatient?.id}
+            />
           </form>
         </Form>
       </DialogContent>
