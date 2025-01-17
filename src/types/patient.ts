@@ -11,6 +11,9 @@ export interface Patient {
   tcm_auscultation?: any;
   tcm_inquiry?: any;
   tcm_palpation?: any;
+  emotional_state?: string;
+  lifestyle_factors?: string;
+  medical_history?: string;
 }
 
 export type NewPatient = Omit<Patient, 'id' | 'created_at'>;

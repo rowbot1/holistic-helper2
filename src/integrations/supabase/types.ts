@@ -15,8 +15,11 @@ export type Database = {
           complaint_duration: string | null
           created_at: string
           dob: string
+          emotional_state: string | null
           gender: string
           id: string
+          lifestyle_factors: string | null
+          medical_history: string | null
           name: string
           tcm_auscultation: Json | null
           tcm_inquiry: Json | null
@@ -29,8 +32,11 @@ export type Database = {
           complaint_duration?: string | null
           created_at?: string
           dob: string
+          emotional_state?: string | null
           gender: string
           id?: string
+          lifestyle_factors?: string | null
+          medical_history?: string | null
           name: string
           tcm_auscultation?: Json | null
           tcm_inquiry?: Json | null
@@ -43,8 +49,11 @@ export type Database = {
           complaint_duration?: string | null
           created_at?: string
           dob?: string
+          emotional_state?: string | null
           gender?: string
           id?: string
+          lifestyle_factors?: string | null
+          medical_history?: string | null
           name?: string
           tcm_auscultation?: Json | null
           tcm_inquiry?: Json | null
