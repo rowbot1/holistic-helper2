@@ -24,4 +24,13 @@ export const tcmService = {
     if (error) throw error;
     return data;
   },
+
+  async generateReport(patientId: string) {
+    const { data, error } = await supabase.functions.invoke('tcm-report', {
+      body: { patientId },
+    });
+
+    if (error) throw error;
+    return data;
+  },
 };
