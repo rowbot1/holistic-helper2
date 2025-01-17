@@ -6,10 +6,6 @@ const WEAVIATE_URL = Deno.env.get('WEAVIATE_URL') || "2thnljoisdy8xfn23vue1a.c0.
 const WEAVIATE_API_KEY = Deno.env.get('WEAVIATE_API_KEY');
 const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
 
-if (!WEAVIATE_API_KEY || !DEEPSEEK_API_KEY) {
-  throw new Error('Missing required environment variables');
-}
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -24,7 +20,7 @@ const client = weaviate.client({
 
 async function queryRelevantTCMKnowledge(patientData: any) {
   console.log('Querying TCM knowledge for patient data:', patientData);
-  const searchQuery = `${patientData.chief_complaint} ${patientData.tongue_color || ''}`.trim();
+  const searchQuery = `${patientData.chief_complaint} ${patientData.tcm_inspection?.tongue_color || ''}`.trim();
   
   try {
     const result = await client.graphql
@@ -53,7 +49,10 @@ async function generateReportWithDeepseek(patientData: any, tcmKnowledge: any[])
 
 Patient Information:
 - Chief Complaint: ${patientData.chief_complaint}
-- Tongue Color: ${patientData.tongue_color || 'Not recorded'}
+- TCM Inspection: ${JSON.stringify(patientData.tcm_inspection)}
+- TCM Auscultation: ${JSON.stringify(patientData.tcm_auscultation)}
+- TCM Inquiry: ${JSON.stringify(patientData.tcm_inquiry)}
+- TCM Palpation: ${JSON.stringify(patientData.tcm_palpation)}
 - Gender: ${patientData.gender}
 - Name: ${patientData.name}
 
