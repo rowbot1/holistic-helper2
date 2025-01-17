@@ -31,16 +31,34 @@ async function createTCMClassIfNotExists() {
         .withClass({
           class: 'TCMKnowledge',
           description: 'Traditional Chinese Medicine knowledge base',
+          vectorizer: "text2vec-transformers",  // Add this line
+          moduleConfig: {
+            "text2vec-transformers": {
+              vectorizeClassName: true
+            }
+          },
           properties: [
             {
               name: 'text',
               dataType: ['text'],
               description: 'The content of the TCM knowledge',
+              moduleConfig: {
+                "text2vec-transformers": {
+                  skip: false,
+                  vectorizePropertyName: false
+                }
+              }
             },
             {
               name: 'title',
               dataType: ['text'],
               description: 'The title or category of the TCM knowledge',
+              moduleConfig: {
+                "text2vec-transformers": {
+                  skip: false,
+                  vectorizePropertyName: false
+                }
+              }
             }
           ],
         })
@@ -60,11 +78,26 @@ async function queryRelevantTCMKnowledge(patientData: any) {
   try {
     await createTCMClassIfNotExists();
     
+    // First, try using the where operator for text search
     const result = await client.graphql
       .get()
       .withClassName('TCMKnowledge')
       .withFields(['text', 'title', '_additional { certainty }'])
-      .withNearText({ concepts: [searchQuery] })
+      .withWhere({
+        operator: 'Or',
+        operands: [
+          {
+            path: ['text'],
+            operator: 'Like',
+            valueText: searchQuery
+          },
+          {
+            path: ['title'],
+            operator: 'Like',
+            valueText: searchQuery
+          }
+        ]
+      })
       .withLimit(3)
       .do();
 
