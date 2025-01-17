@@ -43,7 +43,7 @@ interface TCMDiagnosticFormData {
   
   // Palpation
   pulseRate: number;
-  pulseQualities: string[];
+  pulseQualities: string; // Changed from string[] to string
 }
 
 export function TCMDiagnosticForm() {
